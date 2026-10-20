@@ -1,16 +1,23 @@
 import { type NextRequest, NextResponse } from "next/server";
 
+const getSupabaseCredentials = () => {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key =
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  return { url, key };
+};
+
 /**
  * Checks if real Supabase credentials have been configured in environment variables.
  */
 export function isSupabaseConfigured(): boolean {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const { url, key } = getSupabaseCredentials();
   return Boolean(
     url &&
-    anonKey &&
+    key &&
     !url.includes("placeholder-project") &&
-    !anonKey.includes("placeholder-anon-key")
+    !key.includes("placeholder-anon-key")
   );
 }
 
@@ -19,10 +26,11 @@ export function isSupabaseConfigured(): boolean {
  */
 export function createClient() {
   const { createBrowserClient } = require("@supabase/ssr");
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder-project.supabase.co";
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder-anon-key";
+  const { url, key } = getSupabaseCredentials();
+  const supabaseUrl = url || "https://placeholder-project.supabase.co";
+  const supabaseKey = key || "placeholder-anon-key";
 
-  return createBrowserClient(supabaseUrl, supabaseAnonKey);
+  return createBrowserClient(supabaseUrl, supabaseKey);
 }
 
 /**
@@ -34,10 +42,11 @@ export async function createServerSupabaseClient() {
     import("@supabase/ssr"),
   ]);
   const cookieStore = await cookies();
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder-project.supabase.co";
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder-anon-key";
+  const { url, key } = getSupabaseCredentials();
+  const supabaseUrl = url || "https://placeholder-project.supabase.co";
+  const supabaseKey = key || "placeholder-anon-key";
 
-  return createServerClient(supabaseUrl, supabaseAnonKey, {
+  return createServerClient(supabaseUrl, supabaseKey, {
     cookies: {
       getAll() {
         return cookieStore.getAll();
@@ -64,15 +73,14 @@ export async function updateSession(request: NextRequest) {
     request,
   });
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const { url: supabaseUrl, key: supabaseKey } = getSupabaseCredentials();
 
-  if (!isSupabaseConfigured() || !supabaseUrl || !supabaseAnonKey) {
+  if (!isSupabaseConfigured() || !supabaseUrl || !supabaseKey) {
     return { supabaseResponse, user: null, configured: false };
   }
 
   const { createServerClient } = await import("@supabase/ssr");
-  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+  const supabase = createServerClient(supabaseUrl, supabaseKey, {
     cookies: {
       getAll() {
         return request.cookies.getAll();

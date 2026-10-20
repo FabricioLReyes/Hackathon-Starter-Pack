@@ -1,11 +1,31 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { Button } from "@/components/ui/Button";
 import { FiCheckCircle, FiDatabase, FiLock, FiShield, FiZap, FiArrowRight } from "@/components/ui/Icons";
 import { isSupabaseConfigured } from "@/lib/supabase";
+import { createClient } from "@/utils/supabase/server";
 
-export default function Home() {
+export default async function Home() {
   const supabaseReady = isSupabaseConfigured();
+
+  let todos: { id: string | number; name?: string; title?: string }[] | null = null;
+  let todosError: string | null = null;
+
+  if (supabaseReady) {
+    try {
+      const cookieStore = await cookies();
+      const supabase = createClient(cookieStore);
+      const { data, error } = await supabase.from("todos").select();
+      if (error) {
+        todosError = error.message;
+      } else {
+        todos = data;
+      }
+    } catch (err: unknown) {
+      todosError = err instanceof Error ? err.message : "Error al conectar con Supabase";
+    }
+  }
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-6 md:p-12">
@@ -67,29 +87,57 @@ export default function Home() {
           </div>
 
           {/* Supabase Status Banner */}
-          <div className="mt-8 flex items-center justify-between rounded-xl border border-border bg-muted/50 p-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-card text-foreground shadow-sm">
-                <FiDatabase className="h-5 w-5 text-primary" />
+          <div className="mt-8 flex flex-col gap-3 rounded-xl border border-border bg-muted/50 p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-card text-foreground shadow-sm">
+                  <FiDatabase className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-foreground">Estado de Conexión Supabase</p>
+                  <p className="text-xs text-muted-foreground">
+                    {supabaseReady
+                      ? "Conectado a tu proyecto de Supabase vía @supabase/ssr"
+                      : "Modo demostración activo (credenciales placeholder en .env.local)."}
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="text-xs font-semibold text-foreground">Estado de Conexión Supabase</p>
-                <p className="text-xs text-muted-foreground">
-                  {supabaseReady
-                    ? "Variables de entorno detectadas y activas."
-                    : "Modo demostración activo (credenciales placeholder en .env.local)."}
-                </p>
-              </div>
+              <span
+                className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${
+                  supabaseReady
+                    ? "bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20"
+                    : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"
+                }`}
+              >
+                {supabaseReady ? "Conectado" : "Demo Mode"}
+              </span>
             </div>
-            <span
-              className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${
-                supabaseReady
-                  ? "bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20"
-                  : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"
-              }`}
-            >
-              {supabaseReady ? "Conectado" : "Demo Mode"}
-            </span>
+
+            {/* Live Data Query Preview from 'todos' */}
+            {supabaseReady && (
+              <div className="mt-2 border-t border-border/60 pt-3">
+                <p className="text-xs font-medium text-muted-foreground mb-1">
+                  Consulta de prueba Server Component (<code>supabase.from(&apos;todos&apos;).select()</code>):
+                </p>
+                {todos && todos.length > 0 ? (
+                  <ul className="divide-y divide-border/60 rounded-lg border border-border bg-card p-2 text-xs">
+                    {todos.map((todo) => (
+                      <li key={todo.id} className="py-1 px-2 font-mono">
+                        {todo.name || todo.title || JSON.stringify(todo)}
+                      </li>
+                    ))}
+                  </ul>
+                ) : todosError ? (
+                  <p className="text-xs text-muted-foreground/80 italic">
+                    Nota: La tabla <code>todos</code> no existe todavía en tu base de datos o está vacía ({todosError}). ¡Crea una tabla en el panel de Supabase para ver datos aquí en tiempo real!
+                  </p>
+                ) : (
+                  <p className="text-xs text-muted-foreground/80 italic">
+                    Tabla <code>todos</code> consultada con éxito (0 registros encontrados actualmente).
+                  </p>
+                )}
+              </div>
+            )}
           </div>
         </section>
 
