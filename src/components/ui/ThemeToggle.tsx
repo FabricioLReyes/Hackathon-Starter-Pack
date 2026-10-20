@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { FiSun, FiMoon } from "react-icons/fi";
+import { FiSun, FiMoon } from "./Icons";
 import { cn } from "@/lib/utils";
 
 interface ThemeToggleProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {

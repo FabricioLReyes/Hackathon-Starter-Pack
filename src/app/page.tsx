@@ -1,7 +1,12 @@
+import Link from "next/link";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
-import { FiCheckCircle, FiLayers, FiMoon, FiSun, FiZap } from "react-icons/fi";
+import { Button } from "@/components/ui/Button";
+import { FiCheckCircle, FiDatabase, FiLock, FiShield, FiZap, FiArrowRight } from "@/components/ui/Icons";
+import { isSupabaseConfigured } from "@/lib/supabase";
 
 export default function Home() {
+  const supabaseReady = isSupabaseConfigured();
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-6 md:p-12">
       <div className="w-full max-w-4xl space-y-8">
@@ -16,73 +21,107 @@ export default function Home() {
               <p className="text-xs text-muted-foreground">Next.js App Router • Tailwind CSS • Supabase Ready</p>
             </div>
           </div>
-          <ThemeToggle showLabel />
+          <div className="flex items-center gap-3">
+            <Link href="/login">
+              <Button variant="ghost" size="sm">
+                Iniciar Sesión
+              </Button>
+            </Link>
+            <Link href="/register">
+              <Button size="sm">Registrarse</Button>
+            </Link>
+            <ThemeToggle />
+          </div>
         </header>
 
         {/* Hero Banner */}
         <section className="rounded-2xl border border-border bg-card p-8 shadow-sm">
-          <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-            <FiCheckCircle className="h-3.5 w-3.5" /> Fase 1: Cimientos y Theming Completados
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+              <FiCheckCircle className="h-3.5 w-3.5" /> Fase 1: Cimientos y Theming
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+              <FiCheckCircle className="h-3.5 w-3.5" /> Fase 2: Supabase y Auth Ready
+            </span>
           </div>
 
           <h2 className="mt-4 text-3xl font-extrabold tracking-tight md:text-4xl">
-            Arquitectura modular lista para escalar
+            Infraestructura de Datos y Autenticación Lista
           </h2>
           <p className="mt-2 text-base text-muted-foreground">
-            Estructura estricta en <code className="rounded bg-muted px-1.5 py-0.5 text-xs font-mono">src/</code>,
-            sistema semántico de colores Light/Dark mode sin parpadeo (FOUC), e iconografía basada en <code className="rounded bg-muted px-1.5 py-0.5 text-xs font-mono">react-icons</code>.
+            Clientes de Supabase SSR (browser/server), middleware de protección para <code className="rounded bg-muted px-1.5 py-0.5 text-xs font-mono">(dashboard)</code>, componentes modulares de Login/Registro y soporte para Google OAuth.
           </p>
 
-          {/* Theme Palette Verification Matrix */}
-          <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
-              <span className="text-xs font-medium text-muted-foreground">Card & Border</span>
-              <p className="mt-1 font-semibold text-card-foreground">bg-card</p>
+          {/* Quick Action CTAs */}
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Link href="/login">
+              <Button className="gap-2">
+                Probar Flujo de Login <FiArrowRight className="h-4 w-4" />
+              </Button>
+            </Link>
+            <Link href="/register">
+              <Button variant="outline" className="gap-2">
+                Probar Registro
+              </Button>
+            </Link>
+          </div>
+
+          {/* Supabase Status Banner */}
+          <div className="mt-8 flex items-center justify-between rounded-xl border border-border bg-muted/50 p-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-card text-foreground shadow-sm">
+                <FiDatabase className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-foreground">Estado de Conexión Supabase</p>
+                <p className="text-xs text-muted-foreground">
+                  {supabaseReady
+                    ? "Variables de entorno detectadas y activas."
+                    : "Modo demostración activo (credenciales placeholder en .env.local)."}
+                </p>
+              </div>
             </div>
-            <div className="rounded-xl bg-primary p-4 text-primary-foreground shadow-sm">
-              <span className="text-xs font-medium opacity-80">Primary</span>
-              <p className="mt-1 font-semibold">bg-primary</p>
-            </div>
-            <div className="rounded-xl bg-secondary p-4 text-secondary-foreground shadow-sm">
-              <span className="text-xs font-medium opacity-80">Secondary</span>
-              <p className="mt-1 font-semibold">bg-secondary</p>
-            </div>
-            <div className="rounded-xl bg-muted p-4 text-muted-foreground shadow-sm">
-              <span className="text-xs font-medium">Muted</span>
-              <p className="mt-1 font-semibold">bg-muted</p>
-            </div>
+            <span
+              className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${
+                supabaseReady
+                  ? "bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20"
+                  : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"
+              }`}
+            >
+              {supabaseReady ? "Conectado" : "Demo Mode"}
+            </span>
           </div>
         </section>
 
-        {/* Architecture Checklist */}
+        {/* Auth & Security Checklist */}
         <section className="grid gap-4 md:grid-cols-3">
           <div className="rounded-xl border border-border bg-card p-5">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
-              <FiLayers className="h-5 w-5" />
+              <FiShield className="h-5 w-5" />
             </div>
-            <h3 className="mt-3 font-semibold">Estructura Modular</h3>
+            <h3 className="mt-3 font-semibold">Middleware Seguro</h3>
             <p className="mt-1 text-xs text-muted-foreground">
-              Separación clara de <code className="text-primary font-mono">components/ui</code>, <code className="text-primary font-mono">layout</code>, y <code className="text-primary font-mono">sections</code>.
+              Protección de rutas con validación de sesión de Supabase y redirección inteligente con query param <code className="text-primary font-mono">?next=</code>.
             </p>
           </div>
 
           <div className="rounded-xl border border-border bg-card p-5">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
-              <FiSun className="h-5 w-5" />
+              <FiDatabase className="h-5 w-5" />
             </div>
-            <h3 className="mt-3 font-semibold">Theming Semántico</h3>
+            <h3 className="mt-3 font-semibold">Supabase SSR Ready</h3>
             <p className="mt-1 text-xs text-muted-foreground">
-              Variables CSS semánticas en <code className="text-primary font-mono">globals.css</code> con soporte completo de opacidad en Tailwind.
+              Soporte completo para App Router con <code className="text-primary font-mono">@supabase/ssr</code> y cookies asíncronas de Next.js 15.
             </p>
           </div>
 
           <div className="rounded-xl border border-border bg-card p-5">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
-              <FiMoon className="h-5 w-5" />
+              <FiLock className="h-5 w-5" />
             </div>
-            <h3 className="mt-3 font-semibold">Zero-FOUC</h3>
+            <h3 className="mt-3 font-semibold">UI Modular y Google Auth</h3>
             <p className="mt-1 text-xs text-muted-foreground">
-              Script inline síncrono en <code className="text-primary font-mono">layout.tsx</code> para prevenir destellos en la carga inicial.
+              Componentes reutilizables con accesibilidad, alternador de visibilidad de contraseña e inicio de sesión con Google.
             </p>
           </div>
         </section>
@@ -90,4 +129,3 @@ export default function Home() {
     </main>
   );
 }
-
